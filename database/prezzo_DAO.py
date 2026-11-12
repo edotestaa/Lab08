@@ -39,3 +39,28 @@ class PrezzoDAO:
             cnx.close()
 
         return result
+
+
+    def get_prezzo_medio_per_distributore(mese:int):
+        cnx = DBConnect.get_connection()
+        result = []
+
+        if cnx is None:
+            print("❌ Errore di connessione al database.")
+            return None
+
+        cursor = cnx.cursor(dictionary=True)
+        query = """ SELECT d.nome, AVG(p.prezzo_litro) AS media
+                    FROM prezzo p, distributore d
+                    WHERE p.id_distributore = d.id
+                    AND MONTH(p.data) = %s
+                    GROUP BY d.id, p.prezzo_litro
+                    ORDER BY d.nome """
+        cursor.execute(query, (mese,))
+        for row in cursor:
+                nome = row["nome"]
+                media = row["media"]
+                result.append((nome,media))
+        cursor.close()
+        cnx.close()
+        return result
